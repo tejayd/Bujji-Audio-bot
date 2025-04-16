@@ -1,7 +1,6 @@
 langchain
-langchain-ollama
+google-generativeai
 SpeechRecognition
-pyaudio
-pyttsx3
-gTTS
 pygame
+gTTS
+python-dotenv

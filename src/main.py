@@ -2,20 +2,34 @@ import speech_recognition as sr
 from gtts import gTTS
 import os
 import pygame
-from langchain_ollama import OllamaLLM
+import google.generativeai as genai
+from dotenv import load_dotenv
 import signal
 import sys
 import time
 
 class AudioChatbot:
-    def __init__(self, model_name="llama2"):
-        print(f"\nInitializing chatbot with Ollama model: {model_name}")
+    def __init__(self, model_name="gemini-2.0-flash"):
+        print(f"\nInitializing chatbot with Gemini model: {model_name}")
+        # Load environment variables
+        load_dotenv()
+        
+        # Configure Gemini
+        api_key = os.getenv('GOOGLE_API_KEY')
+        if not api_key:
+            raise ValueError("Please set GOOGLE_API_KEY in your .env file")
+        genai.configure(api_key=api_key)
+        
+        # Initialize the model
+        self.model = genai.GenerativeModel(model_name)
+        self.chat = self.model.start_chat(history=[])
+        
+        # Initialize other components
         self.recognizer = sr.Recognizer()
-        self.llm = OllamaLLM(model=model_name)
         self.is_running = True
         self.temp_file = "temp_speech.mp3"
         
-        # Initialize pygame mixer
+        # Initialize pygame mixer for audio playback
         pygame.mixer.init()
         
         # Set up signal handler
@@ -36,37 +50,42 @@ class AudioChatbot:
         self.is_running = False
         
     def listen(self):
-        """Convert speech to text"""
+        """Convert speech to text with Telugu support"""
         try:
             with sr.Microphone() as source:
-                print("\nListening... (Say 'stop' or press Ctrl+C to exit)")
+                print("\nListening... (చెప్పండి 'ఆపు' లేదా Ctrl+C to exit)")
                 audio = self.recognizer.listen(source)
-                text = self.recognizer.recognize_google(audio)
-                print(f"You said: {text}")
+                # Try Telugu first, then English if Telugu fails
+                try:
+                    text = self.recognizer.recognize_google(audio, language="te-IN")
+                    print(f"మీరు చెప్పారు: {text}")
+                except:
+                    # Fallback to English if Telugu recognition fails
+                    text = self.recognizer.recognize_google(audio, language="en-US")
+                    print(f"You said: {text}")
                 return text
         except sr.UnknownValueError:
-            print("Could not understand audio")
+            print("మాట వినబడలేదు / Could not understand audio")
             return None
         except sr.RequestError as e:
-            print(f"Could not request results; {e}")
+            print(f"గుర్తింపు సేవలో లోపం / Recognition service error; {e}")
             return None
 
     def get_llm_response(self, text):
-        """Get response from Ollama"""
+        """Get response from Gemini"""
         if not text:
             return "నేను మీ మాట వినలేదు. దయచేసి మళ్ళీ చెప్పండి."  # I couldn't understand. Please repeat in Telugu
         try:
-            # Add system instruction for brief responses
-            prompt = ("System: Keep your responses short, clear, and to-the-point. Avoid over-explaining. Always return the responses in Telugu language \n"
-                     f"User: {text}")
-            response = self.llm.invoke(prompt)
-            return response
+            # Add system instruction for brief responses in Telugu
+            prompt = ("Keep your responses short, clear, and to-the-point. Always respond in Telugu language. Here's the user's input: " + text)
+            response = self.chat.send_message(prompt)
+            return response.text
         except Exception as e:
             print(f"Error getting LLM response: {e}")
             return "ఏదో తప్పు జరిగింది. దయచేసి మళ్ళీ ప్రయత్నించండి."  # An error occurred. Please try again in Telugu
 
     def speak(self, text):
-        """Convert text to speech in Telugu"""
+        """Convert text to speech using gTTS for Telugu"""
         print(f"Bot: {text}")
         try:
             # Create gTTS object with Telugu language
@@ -97,6 +116,10 @@ class AudioChatbot:
         """Main chat loop"""
         print("Chatbot initialized. Say something or 'stop' to exit. Press Ctrl+C for graceful shutdown.")
         
+        # Initial Telugu greeting
+        welcome_msg = "ఏరా ఎలా ఉన్నావ్, నా పేరు బుజ్జి, ఏం కావాలి నీకు"  # Hello! I am your friend. How can I help you?
+        self.speak(welcome_msg)
+        
         while self.is_running:
             try:
                 # Get user input through speech
@@ -105,8 +128,8 @@ class AudioChatbot:
                     continue
                     
                 # Exit conditions
-                if user_input.lower() in ["quit", "exit", "bye", "stop"]:
-                    self.speak("సర్లే నువ్వు వెళ్ళిరా!")  # Goodbye! Have a great day! in Telugu
+                if user_input.lower() in ["quit", "exit", "bye", "stop", "ఆపు", "సరే", "చాలు", "వెళ్తున్నా"]:
+                    self.speak("సర్లే నువ్వు వెళ్ళి రా!")  # Goodbye! Have a great day! in Telugu
                     break
                 
                 # Get and speak response
@@ -119,7 +142,7 @@ class AudioChatbot:
                 break
 
 def main():
-    chatbot = AudioChatbot(model_name="llama3.2")
+    chatbot = AudioChatbot()  
     chatbot.run()
 
 if __name__ == "__main__":
