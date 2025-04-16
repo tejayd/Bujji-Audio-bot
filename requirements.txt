@@ -1,0 +1,7 @@
+langchain
+langchain-ollama
+SpeechRecognition
+pyaudio
+pyttsx3
+gTTS
+pygame
