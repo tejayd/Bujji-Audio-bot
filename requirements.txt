@@ -4,3 +4,10 @@ SpeechRecognition
 pygame
 gTTS
 python-dotenv
+pillow
+chromadb
+bcrypt
+tiktoken
+langchain-google-genai
+langchain-community
+pydantic

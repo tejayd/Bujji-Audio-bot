@@ -25,3 +25,4 @@ venv/
 .DS_Store
 temp_speech.mp3
 *.log
+user_data/
