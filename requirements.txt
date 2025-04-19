@@ -11,3 +11,6 @@ tiktoken
 langchain-google-genai
 langchain-community
 pydantic
+langchain-chroma
+langchain-huggingface
+pyaudio
