@@ -29,10 +29,30 @@ Bujji is an intelligent voice-based chatbot that specializes in Telugu language 
 - Status indicators for system feedback
 
 ### Technical Features
-- Asynchronous audio processing
-- Thread-safe operations
-- Graceful error handling
-- Cross-platform compatibility
+- Asynchronous Audio Processing
+  - Parallel speech recognition and text-to-speech processing using threading
+  - Non-blocking GUI updates during audio operations
+  - Background audio recording with configurable time limits (6-second default)
+  - Graceful interruption handling for both recording and playback
+  - Thread-safe state management for recording and speaking states
+  - Automatic cleanup of temporary audio files
+
+- Thread-safe Operations
+  - Separate threads for audio recording and playback
+  - Safe GUI updates from background threads
+  - Protected shared resource access
+  - Proper thread termination on application exit
+
+- Error Handling
+  - Graceful fallback from Telugu to English speech recognition
+  - Recovery from network interruptions
+  - Proper resource cleanup
+  - User-friendly error messages
+
+- Cross-platform Compatibility
+  - Consistent audio handling across operating systems
+  - Platform-independent GUI using Tkinter
+  - Portable file operations
 
 ## Prerequisites
 
